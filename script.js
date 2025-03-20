@@ -3,14 +3,18 @@ document.addEventListener("DOMContentLoaded", function () {
   const ctx = canvas.getContext("2d");
   let width = (canvas.width = window.innerWidth);
   let height = (canvas.height = window.innerHeight);
+  let isMobile =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
 
   // Configuração do efeito
-  const particleCount = width < 768 ? 120 : 200; // Aumentei o número de partículas
+  const particleCount = isMobile ? 50 : width < 768 ? 80 : 120;
   const particles = [];
-  const connectionDistance = width < 768 ? 100 : 150;
-  const mouseRadius = width < 768 ? 150 : 250; // Reduzido o raio de influência do mouse
+  const connectionDistance = isMobile ? 60 : width < 768 ? 80 : 120;
+  const mouseRadius = isMobile ? 80 : width < 768 ? 120 : 200;
 
-  // Posição do mouse
+  // Posição do mouse/touch
   let mouseX = width / 2;
   let mouseY = height / 2;
   let isMouseMoving = false;
@@ -19,6 +23,9 @@ document.addEventListener("DOMContentLoaded", function () {
   let lastMouseX = mouseX;
   let lastMouseY = mouseY;
   let mouseDirection = { x: 0, y: 0 };
+  let touchStartTime = 0;
+  let touchStartY = 0;
+  let isScrolling = false;
 
   // Paleta de cores
   const colors = [
@@ -235,81 +242,73 @@ document.addEventListener("DOMContentLoaded", function () {
     requestAnimationFrame(animate);
   }
 
-  // Rastreamento do mouse
-  document.addEventListener("mousemove", function (e) {
-    // Calcular a velocidade do mouse
-    const dx = e.clientX - mouseX;
-    const dy = e.clientY - mouseY;
+  // Rastreamento do mouse e touch
+  function handlePointerMove(e) {
+    if (isScrolling) return;
+
+    const clientX = e.type.includes("mouse") ? e.clientX : e.touches[0].clientX;
+    const clientY = e.type.includes("mouse") ? e.clientY : e.touches[0].clientY;
+
+    // Calcular a velocidade do movimento
+    const dx = clientX - mouseX;
+    const dy = clientY - mouseY;
     mouseSpeed = Math.sqrt(dx * dx + dy * dy);
 
-    // Calcular direção do mouse para efeito de turbilhão
+    // Calcular direção do movimento para efeito de turbilhão
     if (mouseSpeed > 5) {
       mouseDirection.x = dx / mouseSpeed;
       mouseDirection.y = dy / mouseSpeed;
     }
 
-    // Atualizar posição do mouse
-    lastMouseX = mouseX;
-    lastMouseY = mouseY;
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-
-    // Sinalizar que o mouse está se movendo
+    mouseX = clientX;
+    mouseY = clientY;
     isMouseMoving = true;
 
-    // Limpar o temporizador anterior
     clearTimeout(mouseTimer);
-
-    // Definir um temporizador para marcar quando o mouse parou
-    mouseTimer = setTimeout(function () {
+    mouseTimer = setTimeout(() => {
       isMouseMoving = false;
-      mouseSpeed = 0;
-      mouseDirection = { x: 0, y: 0 };
-    }, 200);
-  });
+    }, 100);
+  }
 
-  // Interação por toque para dispositivos móveis
+  // Eventos de mouse
+  document.addEventListener("mousemove", handlePointerMove);
+
+  // Eventos de touch
+  document.addEventListener(
+    "touchstart",
+    (e) => {
+      touchStartTime = Date.now();
+      touchStartY = e.touches[0].clientY;
+      isScrolling = false;
+    },
+    { passive: true }
+  );
+
   document.addEventListener(
     "touchmove",
-    function (e) {
-      if (e.touches.length > 0) {
-        // Prevenir scroll
-        e.preventDefault();
+    (e) => {
+      if (!touchStartY) return;
 
-        // Calcular a velocidade do toque
-        const touch = e.touches[0];
-        const dx = touch.clientX - mouseX;
-        const dy = touch.clientY - mouseY;
-        mouseSpeed = Math.sqrt(dx * dx + dy * dy);
+      const touchY = e.touches[0].clientY;
+      const touchDiff = Math.abs(touchY - touchStartY);
+      const timeDiff = Date.now() - touchStartTime;
 
-        // Calcular direção do toque para efeito de turbilhão
-        if (mouseSpeed > 5) {
-          mouseDirection.x = dx / mouseSpeed;
-          mouseDirection.y = dy / mouseSpeed;
-        }
-
-        // Atualizar posição do mouse
-        lastMouseX = mouseX;
-        lastMouseY = mouseY;
-        mouseX = touch.clientX;
-        mouseY = touch.clientY;
-
-        // Sinalizar que o mouse está se movendo
-        isMouseMoving = true;
-
-        // Limpar o temporizador anterior
-        clearTimeout(mouseTimer);
-
-        // Definir um temporizador para marcar quando o toque parou
-        mouseTimer = setTimeout(function () {
-          isMouseMoving = false;
-          mouseSpeed = 0;
-          mouseDirection = { x: 0, y: 0 };
-        }, 200);
+      // Se o movimento for vertical e rápido, considera como scroll
+      if (touchDiff > 10 && timeDiff < 100) {
+        isScrolling = true;
+        return;
       }
+
+      handlePointerMove(e);
     },
     { passive: false }
   );
+
+  document.addEventListener("touchend", () => {
+    isMouseMoving = false;
+    isScrolling = false;
+    touchStartY = 0;
+  });
 
   // Redimensionamento da janela
   window.addEventListener("resize", function () {
