@@ -453,6 +453,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (isPlaying) {
       audioPlayer.pause();
       playBtn.innerHTML = '<i class="fas fa-play"></i>';
+      isPlaying = false;
     } else {
       const playPromise = audioPlayer.play();
       if (playPromise !== undefined) {
@@ -491,6 +492,12 @@ document.addEventListener("DOMContentLoaded", function () {
   audioPlayer.addEventListener("timeupdate", updateProgress);
   progressBarContainer.addEventListener("click", setProgress);
   volumeSlider.addEventListener("input", setVolume);
+
+  // Atualizar estado quando a música terminar
+  audioPlayer.addEventListener("ended", () => {
+    isPlaying = false;
+    playBtn.innerHTML = '<i class="fas fa-play"></i>';
+  });
 
   // Tratamento de erros do áudio
   audioPlayer.addEventListener("error", (e) => {
