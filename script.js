@@ -425,4 +425,84 @@ document.addEventListener("DOMContentLoaded", function () {
       );
     });
   }
+
+  // Player de Música
+  const audioPlayer = document.getElementById("audioPlayer");
+  const playBtn = document.getElementById("playBtn");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const volumeSlider = document.getElementById("volumeSlider");
+  const progressBar = document.querySelector(".progress");
+  const progressBarContainer = document.querySelector(".progress-bar");
+
+  // Lista de músicas
+  const playlist = [
+    {
+      title: "Tutz - Abre Alas",
+      artist: "Produção: DJ Bruno Hott",
+      src: "Tutz - Abre Alas Prod Bruno Hott .mp3",
+    },
+    // Adicione mais músicas aqui quando necessário
+  ];
+
+  let currentTrack = 0;
+  let isPlaying = false;
+
+  // Funções do Player
+  function togglePlay() {
+    if (isPlaying) {
+      audioPlayer.pause();
+      playBtn.innerHTML = '<i class="fas fa-play"></i>';
+    } else {
+      const playPromise = audioPlayer.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            isPlaying = true;
+          })
+          .catch((error) => {
+            console.error("Erro ao tocar áudio:", error);
+            playBtn.innerHTML = '<i class="fas fa-play"></i>';
+            isPlaying = false;
+          });
+      }
+    }
+  }
+
+  function updateProgress() {
+    const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+    progressBar.style.width = `${progress}%`;
+  }
+
+  function setProgress(e) {
+    const width = this.clientWidth;
+    const clickX = e.offsetX;
+    const duration = audioPlayer.duration;
+    audioPlayer.currentTime = (clickX / width) * duration;
+  }
+
+  function setVolume() {
+    audioPlayer.volume = volumeSlider.value / 100;
+  }
+
+  // Event Listeners
+  playBtn.addEventListener("click", togglePlay);
+  audioPlayer.addEventListener("timeupdate", updateProgress);
+  progressBarContainer.addEventListener("click", setProgress);
+  volumeSlider.addEventListener("input", setVolume);
+
+  // Tratamento de erros do áudio
+  audioPlayer.addEventListener("error", (e) => {
+    console.error("Erro ao carregar áudio:", e);
+    playBtn.innerHTML = '<i class="fas fa-play"></i>';
+    isPlaying = false;
+  });
+
+  audioPlayer.addEventListener("canplaythrough", () => {
+    console.log("Áudio carregado e pronto para tocar");
+  });
+
+  // Inicializar volume
+  setVolume();
 });

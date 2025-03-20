@@ -15,6 +15,47 @@
     />
   </head>
   <body>
+    <!-- Player de Música -->
+    <div class="music-player">
+      <div class="music-player-content">
+        <div class="music-info">
+          <span class="music-title">Tutz - Abre Alas</span>
+          <span class="music-artist">Produção: DJ Bruno Hott</span>
+        </div>
+        <div class="music-controls">
+          <button class="music-btn" id="prevBtn">
+            <i class="fas fa-step-backward"></i>
+          </button>
+          <button class="music-btn play-btn" id="playBtn">
+            <i class="fas fa-play"></i>
+          </button>
+          <button class="music-btn" id="nextBtn">
+            <i class="fas fa-step-forward"></i>
+          </button>
+          <div class="volume-control">
+            <i class="fas fa-volume-up"></i>
+            <input
+              type="range"
+              id="volumeSlider"
+              min="0"
+              max="100"
+              value="50"
+            />
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress"></div>
+        </div>
+        <audio id="audioPlayer" loop>
+          <source
+            src="Tutz - Abre Alas Prod Bruno Hott .mp3"
+            type="audio/mpeg"
+          />
+          Seu navegador não suporta o elemento de áudio.
+        </audio>
+      </div>
+    </div>
+
     <!-- Canvas para efeito de partículas -->
     <canvas id="particleCanvas"></canvas>
 
