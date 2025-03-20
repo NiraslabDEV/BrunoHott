@@ -512,4 +512,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Inicializar volume
   setVolume();
+
+  // Iniciar música automaticamente
+  const playPromise = audioPlayer.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        isPlaying = true;
+      })
+      .catch((error) => {
+        console.error("Erro ao iniciar áudio automaticamente:", error);
+        playBtn.innerHTML = '<i class="fas fa-play"></i>';
+        isPlaying = false;
+      });
+  }
 });
